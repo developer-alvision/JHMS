@@ -9,7 +9,9 @@
  *   Firebase Console -> Project settings -> General
  *   -> Your apps -> Web app -> SDK setup and configuration -> Config
  *
- * Copy the six values across exactly as shown there.
+ * Copy the six values across exactly as shown there. The console shows a
+ * seventh, measurementId, which belongs to Google Analytics. No page loads
+ * Analytics, so it is kept only to match the console and has no effect today.
  *
  * These keys are safe to publish. A Firebase web config is public by
  * design; access is controlled by Firestore Security Rules, not by
@@ -24,7 +26,8 @@ window.FIREBASE_CONFIG = {
     projectId: 'jyothsna-maternity-hms',
     storageBucket: 'jyothsna-maternity-hms.firebasestorage.app',
     messagingSenderId: '146009049073',
-    appId: '1:146009049073:web:8e9499070d760229c02650'
+    appId: '1:146009049073:web:8e9499070d760229c02650',
+    measurementId: 'G-FPQ4FFRD7H'
 };
 
 /* Cloud Functions region. Change only if you deploy functions elsewhere. */
