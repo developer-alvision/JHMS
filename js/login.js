@@ -5,8 +5,8 @@
   if (!reason) return;
   var err = document.getElementById('errorMessage');
   if (!err) return;
-  err.textContent = reason === 'session'
-    ? 'You were signed out because this account was used on another device.'
+  err.textContent = reason === 'deactivated'
+    ? 'Your account has been deactivated. Contact administrator.'
     : 'Your session has ended. Please sign in again.';
   err.style.display = 'block';
 }());
@@ -45,9 +45,9 @@ document.getElementById("loginForm").addEventListener("submit", function(e) {
             });
           }
           
-          // Claim the account for this device. Any other session that is
-          // still open will notice the new id and sign itself out.
-          return claimSession(user.uid)
+          // Record this sign-in. Other devices signed in to the same account stay signed in.
+          return recordLogin(user.uid)
+            .catch(function(recordError) { console.warn('Login record unavailable:', recordError.message); })
             .then(function() {
                 return db.collection('logins').add({
                     email: email,

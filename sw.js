@@ -19,7 +19,7 @@
  * Bump CACHE_VERSION on every deploy. Old caches are deleted on
  * activate, which is also what finally kills the stale-CSS problem.
  */
-const CACHE_VERSION = 'jyothsna-v5-20261013';
+const CACHE_VERSION = 'jyothsna-v6-20261020';
 const APP_SHELL = [
     './',
     'index.html',

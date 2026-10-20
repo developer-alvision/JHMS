@@ -428,8 +428,8 @@ function getCurrentUser(onSuccess) {
 
                     _cachedCurrentUser = userData;
 
-                    // One account, one live session — see watchSession above.
-                    watchSession(user.uid);
+                    // Ends this session if the account is deactivated — see watchAccount below.
+                    watchAccount(user.uid);
 
                     const callbacks = _authCallbacks;
                     _authCallbacks = [];
@@ -747,104 +747,52 @@ function showUpdatePrompt(registration) {
 }
 
 // ==========================================
-// ONE ACTIVE SESSION PER ACCOUNT
+// SIGN-IN ON SEVERAL DEVICES
 //
-// Signing in claims the account by writing a fresh session id onto
-// the staff record. Every open tab watches that field; if it changes
-// to an id this tab does not own, the account has been used
-// somewhere else and this session signs itself out.
+// The same account can be signed in on any number of devices at once;
+// signing in on a new device does not sign out the others. (An earlier
+// "one active session per account" rule did exactly that, so the device
+// that was already open was thrown back to the login page.)
 //
-// This is a staff-discipline control, not a security boundary — the
-// enforcement is co-operative and runs in the browser. It stops the
-// realistic problem (one password quietly shared around the desk),
-// but a determined user with the credentials could bypass it.
+// Two things remain: each sign-in records when and from what device it
+// happened, and deactivating a staff member still ends their open
+// sessions without waiting for a page change.
 // ==========================================
-var SESSION_KEY = 'jyothsna.sessionId';
-var _sessionWatcher = null;
-var _sessionSignOutInProgress = false;
+var _accountWatcher = null;
+var _accountSignOutInProgress = false;
 
-function currentSessionId() {
-    var id = null;
-    try { id = sessionStorage.getItem(SESSION_KEY); } catch (e) { /* private mode */ }
-    return id;
-}
-
-function newSessionId() {
-    var id = (Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 10));
-    try { sessionStorage.setItem(SESSION_KEY, id); } catch (e) { /* private mode */ }
-    return id;
-}
-
-// Claims the account for this tab. Called right after a successful login.
-function claimSession(uid) {
-    var id = newSessionId();
+// Records the latest sign-in on the staff record. Informational only.
+function recordLogin(uid) {
     return db.collection('staff').doc(uid).set({
-        activeSessionId: id,
-        activeSessionAt: firebase.firestore.FieldValue.serverTimestamp(),
+        lastLoginAt: firebase.firestore.FieldValue.serverTimestamp(),
         activeSessionAgent: (navigator.userAgent || '').slice(0, 200)
-    }, { merge: true }).then(function() { return id; });
+    }, { merge: true });
 }
-window.claimSession = claimSession;
+window.recordLogin = recordLogin;
 
-function forceSessionSignOut(message) {
-    if (_sessionSignOutInProgress) return;
-    _sessionSignOutInProgress = true;
-    if (_sessionWatcher) { _sessionWatcher(); _sessionWatcher = null; }
-    try { sessionStorage.removeItem(SESSION_KEY); } catch (e) { /* ignore */ }
-    showToast(message, 'error');
+function forceDeactivatedSignOut() {
+    if (_accountSignOutInProgress) return;
+    _accountSignOutInProgress = true;
+    if (_accountWatcher) { _accountWatcher(); _accountWatcher = null; }
+    showToast('Your account has been deactivated.', 'error');
     setTimeout(function() {
         firebase.auth().signOut().then(function() {
-            window.location.href = 'index.html?reason=session';
+            window.location.href = 'index.html?reason=deactivated';
         });
     }, 2200);
 }
 
-function watchSession(uid) {
-    if (_sessionWatcher) return;
-
-    // A tab that reloads keeps its sessionStorage; a tab opened fresh
-    // after login on this device adopts the stored id rather than
-    // fighting with the tab that already holds it.
-    var mine = currentSessionId();
-
-    _sessionWatcher = db.collection('staff').doc(uid).onSnapshot(function(doc) {
+function watchAccount(uid) {
+    if (_accountWatcher) return;
+    _accountWatcher = db.collection('staff').doc(uid).onSnapshot(function(doc) {
         if (!doc.exists) return;
-        var active = doc.get('activeSessionId');
-
-        // No claim recorded yet (first run after upgrade): take it.
-        if (!active) {
-            if (!mine) mine = newSessionId();
-            db.collection('staff').doc(uid).set({
-                activeSessionId: mine,
-                activeSessionAt: firebase.firestore.FieldValue.serverTimestamp()
-            }, { merge: true }).catch(function(err) {
-                console.warn('Could not claim session:', err.message);
-            });
-            return;
-        }
-
-        if (!mine) {
-            // This tab never claimed anything — adopt the live session so
-            // opening a second tab on the same machine is not treated as
-            // a second device.
-            mine = active;
-            try { sessionStorage.setItem(SESSION_KEY, active); } catch (e) { /* ignore */ }
-            return;
-        }
-
-        if (active !== mine) {
-            forceSessionSignOut('This account was signed in on another device. You have been signed out here.');
-        }
-
-        // Deactivation takes effect without waiting for a page change.
-        if (doc.get('isActive') !== true) {
-            forceSessionSignOut('Your account has been deactivated.');
-        }
+        var isActive = doc.get('isActive');
+        if (isActive !== true && isActive !== 'true') forceDeactivatedSignOut();
     }, function(err) {
-        console.warn('Session watch unavailable:', err.message);
+        console.warn('Account watch unavailable:', err.message);
     });
 }
-window.watchSession = watchSession;
+window.watchAccount = watchAccount;
 
 // ==========================================
 // PRODUCT BRANDING
