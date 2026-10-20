@@ -1,7 +1,7 @@
 {
   "name": "Jyothsna Maternity Hospital",
   "short_name": "Jyothsna HMS",
-  "description": "Hospital management system for Jyothsna Maternity Hospital. Surely HMS by SurelyAds.",
+  "description": "Hospital management system for Jyothsna Maternity Hospital. Powered by Alvision Media.",
   "start_url": "dashboard.html",
   "scope": "./",
   "display": "standalone",

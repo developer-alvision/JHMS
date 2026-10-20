@@ -831,22 +831,18 @@ try {
     window.PRODUCT = PRODUCT;
 }
 
+var POWERED_BY = 'Alvision Media';
+
 function renderAppFooter() {
     if (document.getElementById('appFooter')) return;
     var host = document.querySelector('.main-wrapper');
     if (!host) return;
 
-    var year = new Date().getFullYear();
     var footer = document.createElement('footer');
     footer.id = 'appFooter';
     footer.style.cssText = 'margin-top:auto;padding:14px 28px 18px;text-align:center;color:var(--text-muted);font-size:11.5px;line-height:1.7;border-top:1px solid var(--border-color);';
     footer.innerHTML =
-        '<strong style="color:var(--text-main);">' + escapeHtml(PRODUCT.name) + '</strong> &copy; ' + year
-        + ' &middot; Powered by <strong style="color:var(--text-main);">' + escapeHtml(PRODUCT.vendor) + '</strong>'
-        + ' &middot; <a href="' + PRODUCT.websiteUrl + '" target="_blank" rel="noopener" style="color:var(--primary-teal);text-decoration:none;">' + escapeHtml(PRODUCT.website) + '</a>'
-        + ' &middot; <a href="mailto:' + PRODUCT.email + '" style="color:var(--primary-teal);text-decoration:none;">' + escapeHtml(PRODUCT.email) + '</a>'
-        + '<br><span style="font-size:11px;opacity:0.9;">Designed by <strong style="color:var(--text-main);">' + escapeHtml(PRODUCT.design) + '</strong>'
-        + ' &middot; Author <strong style="color:var(--text-main);">' + escapeHtml(PRODUCT.author) + '</strong></span>'
+        'Powered by <strong style="color:var(--text-main);">' + escapeHtml(POWERED_BY) + '</strong>'
         + '<br><span style="font-size:11px;opacity:0.85;"><i class="fa-solid fa-keyboard" style="margin-right:4px;"></i>'
         + 'Shortcuts: <strong>Alt + N</strong> new patient &middot; <strong>Alt + B</strong> new bill &middot; <strong>Alt + D</strong> dashboard</span>';
 
