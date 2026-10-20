@@ -1,7 +1,7 @@
 'use strict';
 // This script is deliberately incapable of seeding the live project.
 process.env.FIREBASE_AUTH_EMULATOR_HOST = '127.0.0.1:9099';
-process.env.FIRESTORE_EMULATOR_HOST = '127.0.0.1:8080';
+process.env.FIRESTORE_EMULATOR_HOST = '127.0.0.1:8085';
 const fs = require('node:fs');
 const path = require('node:path');
 const admin = require('firebase-admin');

@@ -39,7 +39,7 @@ function portReady(port) {
 }
 (async () => {
   for (let attempt = 0; attempt < 600 && !ended; attempt++) {
-    if ((await Promise.all([5000, 5001, 8080, 9099, 9199].map(portReady))).every(Boolean)) {
+    if ((await Promise.all([5000, 5001, 8085, 9099, 9199].map(portReady))).every(Boolean)) {
       const health = await fetch('http://127.0.0.1:5001/demo-jyothsna-hms/asia-south1/syncStaffUid', {
         method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{"data":{}}', signal: AbortSignal.timeout(10000)
       }).catch(() => null);

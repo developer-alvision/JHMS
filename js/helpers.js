@@ -36,7 +36,7 @@ if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
 // Local development never connects to the hospital's live database.
 if (window.HMS_LOCAL) {
     firebase.auth().useEmulator('http://127.0.0.1:9099', { disableWarnings: true });
-    firebase.firestore().useEmulator('127.0.0.1', 8080);
+    firebase.firestore().useEmulator('127.0.0.1', 8085);
     if (firebase.storage) firebase.storage().useEmulator('127.0.0.1', 9199);
 }
 
