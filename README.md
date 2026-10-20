@@ -19,6 +19,8 @@ Open **http://127.0.0.1:5000**. The start command builds the app, starts Firebas
 
 Local sign-in: **admin@jyothsna.test / DemoHospital123!**. Other test accounts use the same password: `doctor`, `nurse`, `receptionist`, `billing_staff`, `pharmacist`, `lab_technician`, and `owner` at `@jyothsna.test`. These accounts exist only in the local emulators. Sample patient names are prefixed with “Demo”.
 
+Hospital staff logins can also be created in the emulator from a git-ignored file, `.env.accounts.json` (a list of `{ "email", "password", "role", "name", "department" }`). `npm start` and `npm run seed` create each account, or reset its password if it already exists. The file is never committed, deployed or packaged. For the live project, create the same users in Firebase Console → Authentication and add matching staff records; this file does not reach it.
+
 The same account can be signed in on several devices at once. Deactivating a staff member still signs out their open sessions.
 
 Stop using Ctrl+C to save local data in `.emulator-data`; subsequent runs import it. `npm run seed` preserves an existing seed. If a port is already in use, stop the previous local app before starting another. Ports: app 5000, functions 5001, database 8080, authentication 9099, storage 9199. Local services bind to loopback, not the LAN.

@@ -2,12 +2,34 @@
 // This script is deliberately incapable of seeding the live project.
 process.env.FIREBASE_AUTH_EMULATOR_HOST = '127.0.0.1:9099';
 process.env.FIRESTORE_EMULATOR_HOST = '127.0.0.1:8080';
+const fs = require('node:fs');
+const path = require('node:path');
 const admin = require('firebase-admin');
 admin.initializeApp({ projectId: 'demo-jyothsna-hms' });
 const db = admin.firestore();
 const now = admin.firestore.Timestamp.now();
 const date = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
+// Hospital staff logins for the local emulator. They are read from a git-ignored
+// file (`.env*` is excluded from git, Vercel and the handover archive) so that no
+// password is ever committed. Format: [{ "email", "password", "role", "name", "department" }].
+const accountsFile = path.join(__dirname, '../.env.accounts.json');
+async function ensureAccounts() {
+  if (!fs.existsSync(accountsFile)) return;
+  const accounts = JSON.parse(fs.readFileSync(accountsFile, 'utf8'));
+  for (const account of accounts) {
+    const email = account.email.trim().toLowerCase(), name = account.name || email, role = account.role;
+    const profile = { email, password: account.password, displayName: name, emailVerified: true };
+    const existing = await admin.auth().getUserByEmail(email).catch(error => { if (error.code === 'auth/user-not-found') return null; throw error; });
+    const user = existing ? await admin.auth().updateUser(existing.uid, profile) : await admin.auth().createUser({ uid: 'staff-' + email.split('@')[0], ...profile });
+    const ref = db.doc('staff/' + user.uid);
+    const record = { uid: user.uid, email, role, name, isActive: true, hasLogin: true, department: account.department || 'Administration', specialisation: role === 'doctor' ? 'Obstetrics & Gynaecology' : '', opFee: role === 'doctor' ? 500 : 0, freeOP: false };
+    if (!(await ref.get()).exists) record.createdAt = now;
+    await ref.set(record, { merge: true });
+  }
+  console.log(`Hospital staff logins ready: ${accounts.map(account => account.email).join(', ')}`);
+}
 async function seed() {
+  await ensureAccounts();
   if ((await db.doc('_local/seed').get()).exists) { console.log('Existing local data preserved.'); return; }
   const roles = ['admin', 'doctor', 'nurse', 'receptionist', 'billing_staff', 'pharmacist', 'lab_technician', 'owner'];
   const batch = db.batch();
